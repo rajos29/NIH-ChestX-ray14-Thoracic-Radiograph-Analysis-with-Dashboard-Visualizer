@@ -500,7 +500,9 @@ Steps:
 Grad-CAM provides a **qualitative inspection tool**, not a definitive explanation of model reasoning.
 
 Example: 
+
 ![GradCAM example](results/example_gradcam.png)
+
 Note: Grad-CAM heatmap highlighting regions contributing to a prediction, Emphysema on on Patient 13 with DenseNet121.
 
 ---
