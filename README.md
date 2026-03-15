@@ -16,13 +16,19 @@ Launch the dashboard: streamlit run dashboard/app.py
 ![Dashboard](results/dashboard2.png)
 
 Folder Structure:
+
 dashboard/        Streamlit interface for model inspection
+
 scripts/          dataset preparation, training, and evaluation
+
 manifest/         prediction and case review manifests
+
 results/          ROC curves and evaluation outputs
+
 labels/           metadata and label processing
 
 README.md         project documentation
+
 requirements.txt  Python dependencies
 
 ---
