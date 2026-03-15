@@ -200,7 +200,7 @@ Evaluation results include:
 - AUC comparison across model architectures
 - operating point analysis
 
-All generated figures and metrics are available in the `results/` directory.
+All generated figures and metrics are available in the `results/` directory, some of which are mentioned later as well.
 
 ---
 ## Problem Formulation
@@ -441,6 +441,26 @@ Results are stored in the `results/` directory.
 
 For imbalanced datasets, ROC-AUC provides a more reliable measure than raw accuracy.
 
+### ROC Curves
+
+Per-class ROC curves for the two multi-label classifiers are shown below.
+
+**ResNet18**
+![ResNet18 ROC curves](results/resnet18_roc_all_classes.png)
+
+**DenseNet121**
+![DenseNet121 ROC curves](results/densenet121_roc_all_classes.png)
+
+### AUC Comparison
+
+Per-class test ROC-AUC performance is summarized for each architecture below.
+
+**ResNet18**
+![ResNet18 AUC chart](results/resnet18_auc_bar_chart.png)
+
+**DenseNet121**
+![DenseNet121 AUC chart](results/densenet121_auc_bar_chart.png)
+
 ---
 ## Prediction Export and Case Manifest
 
@@ -466,7 +486,7 @@ Each row includes:
 This dataset powers the review dashboard.
 
 ---
-## Grad-CAM Interpretability
+## Grad-CAM Interpretability & Example
 
 Grad-CAM highlights image regions contributing most strongly to a model prediction.
 
@@ -478,26 +498,10 @@ Steps:
 4. project the resulting heatmap onto the image
 
 Grad-CAM provides a **qualitative inspection tool**, not a definitive explanation of model reasoning.
----
-## Example Outputs
 
-### ROC Curves
-
-Per-class ROC curves illustrate classifier discrimination ability across thresholds.
-
-![ROC curves](results/roc_all_classes.png)
-
-### AUC Comparison
-
-Model architecture comparison across disease classes.
-
-![AUC chart](results/auc_bar_chart.png)
-
-### Grad-CAM Example
-
-Example Grad-CAM heatmap highlighting regions contributing to a prediction, Emphysema on on Patient 13 with DenseNet121.
-
+Example: 
 ![GradCAM example](results/example_gradcam.png)
+Note: Grad-CAM heatmap highlighting regions contributing to a prediction, Emphysema on on Patient 13 with DenseNet121.
 
 ---
 ## Dashboard Functionality
