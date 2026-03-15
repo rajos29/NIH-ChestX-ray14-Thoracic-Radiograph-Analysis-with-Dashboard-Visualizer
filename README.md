@@ -376,8 +376,10 @@ SAMPLE/
 Dataset preparation includes:
 
 - image organization
-  - resize 224x224
-  - imageNet normalization
+  
+- resize 224x224
+  
+- ImageNet normalization
 
 - metadata selection
   
