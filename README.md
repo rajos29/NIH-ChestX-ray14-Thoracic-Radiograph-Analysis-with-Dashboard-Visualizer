@@ -3,7 +3,7 @@
 ## Quick Start
 Clone the repository
 
-git clone https://github.com/rajos29/chest-xray-project.git
+git clone [https://github.com/rajos29/chest-xray-project.git](https://github.com/rajos29/NIH-ChestX-ray14-Thoracic-Radiograph-Analysis-with-Dashboard-Visualizer.git)
 
 cd chest-xray-project
 
