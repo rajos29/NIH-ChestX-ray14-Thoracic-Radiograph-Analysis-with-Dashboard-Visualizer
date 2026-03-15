@@ -170,6 +170,10 @@ For example:
 
 This imbalance motivates the use of **ROC-AUC based evaluation rather than raw accuracy**.
 
+Furthermore, class imbalance was addressed at the label-selection stage by restricting the multi-label task to disease categories with a minimum number of positive test examples.
+
+This reduced extreme sparsity for very rare classes and enabled more stable per-class evaluation. 
+
 ---
 ## Model Performance
 

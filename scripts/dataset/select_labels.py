@@ -1,6 +1,6 @@
 import pandas as pd
 
-MANIFEST = "manifest_v2.parquet"
+MANIFEST = "manifest/manifest_v2.parquet"
 MIN_TEST_POSITIVES = 20   # adjust if needed
 
 df = pd.read_parquet(MANIFEST)
