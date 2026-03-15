@@ -1,4 +1,4 @@
-# NIH ChestX-ray14 Thoracic Radiograph Analysis with Dashboard Visualizer [IN PROGRESS]
+# NIH ChestX-ray14 Thoracic Radiograph Analysis with Dashboard Visualizer
 
 ## Quick Start
 Clone the repository
