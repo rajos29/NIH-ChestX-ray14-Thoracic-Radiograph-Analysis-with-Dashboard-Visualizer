@@ -2,21 +2,33 @@
 
 ## Quick Start
 Clone the repository
+
 git clone https://github.com/rajos29/chest-xray-project.git
+
 cd chest-xray-project
+
 pip install -r requirements.txt
+
 Launch the dashboard: streamlit run dashboard/app.py
-![Dashboard](results/dashboard_1.png)
-![Dashboard](results/dashboard_2.png)
+
+![Dashboard](results/dashboard1.png)
+
+![Dashboard](results/dashboard2.png)
 
 Folder Structure:
+
 dashboard/        Streamlit interface for model inspection
+
 scripts/          dataset preparation, training, and evaluation
+
 manifest/         prediction and case review manifests
+
 results/          ROC curves and evaluation outputs
+
 labels/           metadata and label processing
 
 README.md         project documentation
+
 requirements.txt  Python dependencies
 
 ---
@@ -463,7 +475,7 @@ Model architecture comparison across disease classes.
 
 ### Grad-CAM Example
 
-Example Grad-CAM heatmap highlighting regions contributing to a prediction.
+Example Grad-CAM heatmap highlighting regions contributing to a prediction, Emphysema on on Patient 13 with DenseNet121.
 
 ![GradCAM example](results/example_gradcam.png)
 
@@ -599,7 +611,7 @@ This project demonstrates applied experience across machine learning, medical im
 ## System Pipeline
 
 The end-to-end workflow implemented in this project follows the pipeline below.
-
+```text
 NIH ChestXray Dataset
         │
         │
@@ -630,7 +642,7 @@ CSV + Parquet
         ▼
 Interactive Review Dashboard
 (Streamlit + Grad-CAM)
-
+```
 ---
 ## Acknowledgments
 
