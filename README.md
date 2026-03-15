@@ -599,7 +599,7 @@ This project demonstrates applied experience across machine learning, medical im
 ## System Pipeline
 
 The end-to-end workflow implemented in this project follows the pipeline below.
-
+```text
 NIH ChestXray Dataset
         │
         │
@@ -630,7 +630,7 @@ CSV + Parquet
         ▼
 Interactive Review Dashboard
 (Streamlit + Grad-CAM)
-
+```
 ---
 ## Acknowledgments
 
