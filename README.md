@@ -201,6 +201,7 @@ Evaluation results include:
 - operating point analysis
 
 All generated figures and metrics are available in the `results/` directory.
+
 ---
 ## Problem Formulation
 
