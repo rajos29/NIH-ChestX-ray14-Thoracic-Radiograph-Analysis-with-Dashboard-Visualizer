@@ -503,7 +503,7 @@ Example:
 
 ![GradCAM example](results/example_gradcam.png)
 
-Note: Grad-CAM heatmap highlighting regions contributing to a prediction, Emphysema on on Patient 13 with DenseNet121.
+*Figure is of Grad-CAM heatmap highlighting regions contributing to a prediction, Emphysema on on Patient 13 with DenseNet121.*
 
 ---
 ## Dashboard Functionality
