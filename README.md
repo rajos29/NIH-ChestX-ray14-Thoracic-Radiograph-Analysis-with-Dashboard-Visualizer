@@ -70,7 +70,7 @@ The goal is not to present a clinical product, but rather a **research-oriented 
 ---
 ## Data Source and Attribution
 
-This project uses metadata and image data derived from the **NIH ChestX-ray dataset**, the specific derivation this project is using a subset of the full dataset known as "ChestX-ray8".
+This project uses metadata and image data derived from the **NIH ChestX-ray dataset**, the specific derivation this project is using is a subset of the full dataset known as "ChestX-ray8".
 
 ### Original Dataset
 
