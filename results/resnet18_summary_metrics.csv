@@ -1,0 +1,2 @@
+model,macro_auc,micro_auc,target_specificity,num_val_samples,num_test_samples
+resnet18,0.7130988728815755,0.7235201876909646,0.9,853,848

@@ -11,12 +11,12 @@ import matplotlib.pyplot as plt
 
 # ---- CONFIG ----
 MANIFEST = "manifest/manifest_v2.parquet"
-CKPT = input("What is the Relative Path of the model?\n")
+CKPT = input("What is the Relative Path of the model?\n").strip()
 BATCH_SIZE = 32
 NUM_WORKERS = 0  # Windows-safe
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 IMG_SIZE = 224
-TARGET_SPEC = 0.90  # change to 0.95 if you want stricter
+TARGET_SPEC = 0.90
 RESULTS_DIR = "results"
 # ----------------
 
@@ -32,6 +32,7 @@ SELECTED_LABELS = [
     "Pleural_Thickening",
     "Pneumothorax",
 ]
+
 
 class CXRMultiLabelDataset(Dataset):
     def __init__(self, df, label_cols, transform):
@@ -50,6 +51,7 @@ class CXRMultiLabelDataset(Dataset):
         y = torch.tensor(row[self.label_cols].values.astype(np.float32))
         return x, y
 
+
 def make_transform(img_size):
     return transforms.Compose([
         transforms.Resize((img_size, img_size)),
@@ -57,28 +59,28 @@ def make_transform(img_size):
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
     ])
 
+
 @torch.no_grad()
 def predict_probs(model, loader):
     model.eval()
     probs_list, y_list = [], []
+
     for x, y in loader:
         x = x.to(DEVICE, non_blocking=True)
         logits = model(x)
         probs = torch.sigmoid(logits).cpu().numpy()
         probs_list.append(probs)
         y_list.append(y.numpy())
+
     return np.concatenate(probs_list, axis=0), np.concatenate(y_list, axis=0)
 
+
 def threshold_for_specificity(probs, y_true, target_spec):
-    """
-    Choose threshold so that specificity ~ target_spec on y_true==0 samples.
-    Predict positive if prob >= thr.
-    """
     neg_probs = probs[y_true == 0]
     if len(neg_probs) == 0:
-        return 1.0  # no negatives -> degenerate; never predict positive
-    thr = np.quantile(neg_probs, target_spec)
-    return float(thr)
+        return 1.0
+    return float(np.quantile(neg_probs, target_spec))
+
 
 def confusion_counts(y_true, y_pred):
     tn = int(((y_true == 0) & (y_pred == 0)).sum())
@@ -87,13 +89,61 @@ def confusion_counts(y_true, y_pred):
     tp = int(((y_true == 1) & (y_pred == 1)).sum())
     return tn, fp, fn, tp
 
+
 def safe_div(a, b):
     return float(a) / float(b) if b != 0 else float("nan")
 
-def plot_per_class_roc(test_true, test_probs, class_names, save_dir):
+
+def infer_model_tag(ckpt_name):
+    ckpt_name = ckpt_name.lower()
+
+    if "densenet121" in ckpt_name:
+        return "densenet121"
+    elif "resnet18" in ckpt_name:
+        return "resnet18"
+    else:
+        raise ValueError(
+            "Could not infer model type from checkpoint filename. "
+            "Include 'resnet18' or 'densenet121' in the filename."
+        )
+
+
+def build_model(model_tag, num_classes):
+    if model_tag == "densenet121":
+        model = models.densenet121(weights=None)
+        model.classifier = nn.Linear(model.classifier.in_features, num_classes)
+    elif model_tag == "resnet18":
+        model = models.resnet18(weights=None)
+        model.fc = nn.Linear(model.fc.in_features, num_classes)
+    else:
+        raise ValueError(f"Unsupported model tag: {model_tag}")
+    return model
+
+
+def load_checkpoint_state_dict(ckpt_path, device):
+    try:
+        ckpt = torch.load(ckpt_path, map_location=device, weights_only=True)
+    except TypeError:
+        ckpt = torch.load(ckpt_path, map_location=device)
+
+    if isinstance(ckpt, dict) and "model_state_dict" in ckpt:
+        state_dict = ckpt["model_state_dict"]
+    else:
+        state_dict = ckpt
+
+    cleaned = {}
+    for k, v in state_dict.items():
+        if k.startswith("module."):
+            cleaned[k[len("module."):]] = v
+        else:
+            cleaned[k] = v
+
+    return cleaned
+
+
+def plot_per_class_roc(test_true, test_probs, class_names, save_dir, model_tag):
     os.makedirs(save_dir, exist_ok=True)
 
-    # Combined ROC plot
     plt.figure(figsize=(10, 8))
     for i, label in enumerate(class_names):
         y_true = test_true[:, i].astype(int)
@@ -109,13 +159,12 @@ def plot_per_class_roc(test_true, test_probs, class_names, save_dir):
     plt.plot([0, 1], [0, 1], "k--", linewidth=1)
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.title("DenseNet121 Test ROC Curves")
+    plt.title(f"{model_tag} Test ROC Curves")
     plt.legend(loc="lower right", fontsize=8)
     plt.tight_layout()
-    plt.savefig(os.path.join(save_dir, "roc_all_classes.png"), dpi=300)
+    plt.savefig(os.path.join(save_dir, f"{model_tag}_roc_all_classes.png"), dpi=300)
     plt.close()
 
-    # Individual ROC plots
     for i, label in enumerate(class_names):
         y_true = test_true[:, i].astype(int)
         y_score = test_probs[:, i]
@@ -131,14 +180,15 @@ def plot_per_class_roc(test_true, test_probs, class_names, save_dir):
         plt.plot([0, 1], [0, 1], "k--", linewidth=1)
         plt.xlabel("False Positive Rate")
         plt.ylabel("True Positive Rate")
-        plt.title(f"ROC Curve - {label}")
+        plt.title(f"{model_tag} ROC Curve - {label}")
         plt.legend(loc="lower right")
         plt.tight_layout()
-        filename = f"roc_{label.lower().replace(' ', '_')}.png"
+        filename = f"{model_tag}_roc_{label.lower().replace(' ', '_')}.png"
         plt.savefig(os.path.join(save_dir, filename), dpi=300)
         plt.close()
 
-def plot_micro_average_roc(test_true, test_probs, save_dir):
+
+def plot_micro_average_roc(test_true, test_probs, save_dir, model_tag):
     os.makedirs(save_dir, exist_ok=True)
 
     fpr_micro, tpr_micro, _ = roc_curve(test_true.ravel(), test_probs.ravel())
@@ -149,13 +199,14 @@ def plot_micro_average_roc(test_true, test_probs, save_dir):
     plt.plot([0, 1], [0, 1], "k--", linewidth=1)
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.title("Micro-Average ROC Curve")
+    plt.title(f"{model_tag} Micro-Average ROC Curve")
     plt.legend(loc="lower right")
     plt.tight_layout()
-    plt.savefig(os.path.join(save_dir, "roc_micro_average.png"), dpi=300)
+    plt.savefig(os.path.join(save_dir, f"{model_tag}_roc_micro_average.png"), dpi=300)
     plt.close()
 
-def plot_auc_bar_chart(report_df, save_dir):
+
+def plot_auc_bar_chart(report_df, save_dir, model_tag):
     os.makedirs(save_dir, exist_ok=True)
 
     plot_df = report_df.sort_values("test_auc", ascending=True)
@@ -164,14 +215,21 @@ def plot_auc_bar_chart(report_df, save_dir):
     plt.barh(plot_df["label"], plot_df["test_auc"])
     plt.xlabel("Test ROC-AUC")
     plt.ylabel("Pathology")
-    plt.title("DenseNet121 Test AUC by Class")
+    plt.title(f"{model_tag} Test AUC by Class")
     plt.xlim(0.0, 1.0)
     plt.tight_layout()
-    plt.savefig(os.path.join(save_dir, "auc_bar_chart.png"), dpi=300)
+    plt.savefig(os.path.join(save_dir, f"{model_tag}_auc_bar_chart.png"), dpi=300)
     plt.close()
+
 
 def main():
     os.makedirs(RESULTS_DIR, exist_ok=True)
+
+    ckpt_path = os.path.normpath(CKPT)
+    ckpt_name = os.path.basename(ckpt_path).lower()
+    model_tag = infer_model_tag(ckpt_name)
+
+    print(f"Detected model: {model_tag}")
 
     df = pd.read_parquet(MANIFEST)
 
@@ -185,24 +243,22 @@ def main():
         batch_size=BATCH_SIZE,
         shuffle=False,
         num_workers=NUM_WORKERS,
-        pin_memory=True
+        pin_memory=(DEVICE == "cuda"),
     )
+
     test_loader = DataLoader(
         CXRMultiLabelDataset(df_test, SELECTED_LABELS, tfm),
         batch_size=BATCH_SIZE,
         shuffle=False,
         num_workers=NUM_WORKERS,
-        pin_memory=True
+        pin_memory=(DEVICE == "cuda"),
     )
 
-    # Model (DenseNet121)
-    model = models.densenet121(weights=None)
-    model.classifier = nn.Linear(model.classifier.in_features, len(SELECTED_LABELS))
+    model = build_model(model_tag, len(SELECTED_LABELS))
     model.to(DEVICE)
 
-    # Load checkpoint
-    ckpt = torch.load(CKPT, map_location=DEVICE, weights_only=False)
-    model.load_state_dict(ckpt["model_state_dict"])
+    state_dict = load_checkpoint_state_dict(ckpt_path, DEVICE)
+    model.load_state_dict(state_dict)
 
     val_probs, val_true = predict_probs(model, val_loader)
     test_probs, test_true = predict_probs(model, test_loader)
@@ -239,12 +295,11 @@ def main():
             "TN": tn,
             "FP": fp,
             "FN": fn,
-            "TP": tp
+            "TP": tp,
         })
 
     out = pd.DataFrame(rows).sort_values("test_auc", ascending=False)
 
-    # Macro / Micro AUC summaries
     macro_auc = roc_auc_score(test_true, test_probs, average="macro")
     micro_auc = roc_auc_score(test_true, test_probs, average="micro")
 
@@ -253,47 +308,40 @@ def main():
     pd.set_option("display.max_rows", 200)
 
     print(f"\nOperating point: thresholds chosen for ~{int(TARGET_SPEC * 100)}% specificity on VAL\n")
-    print(out[[
-        "label", "val_pos", "test_pos", "thr@val_spec", "val_auc", "test_auc",
-        "test_spec", "test_sens", "test_prec", "TN", "FP", "FN", "TP"
-    ]].to_string(index=False))
+    print(out[
+        ["label", "val_pos", "test_pos", "thr@val_spec", "val_auc", "test_auc",
+         "test_spec", "test_sens", "test_prec", "TN", "FP", "FN", "TP"]
+    ].to_string(index=False))
 
     print(f"\nMacro ROC-AUC (test): {macro_auc:.4f}")
     print(f"Micro ROC-AUC (test): {micro_auc:.4f}")
 
-    # Save tabular results
-    if(CKPT == "models/best_densenet121_multilabel.pt"):
-        out.to_csv("results/operating_points_report_densenet121.csv", index=False)
-        print("\nSaved: results/operating_points_report_densenet121.csv")
-
-    elif(CKPT == "models/best_resnet18_multilabel.pt"):
-        out.to_csv("results/operating_points_report_resnet18.csv", index=False)
-        print("\nSaved: results/operating_points_report_resnet18.csv")
-
-    else:
-        out.to_csv("results/operating_points_report_unspecified_model.csv", index=False)
-        print("\nSaved: results/operating_points_report_unspecified_model.csv")        
+    report_path = os.path.join(RESULTS_DIR, f"{model_tag}_operating_points_report.csv")
+    out.to_csv(report_path, index=False)
+    print(f"\nSaved: {report_path}")
 
     summary_df = pd.DataFrame([{
+        "model": model_tag,
         "macro_auc": macro_auc,
         "micro_auc": micro_auc,
         "target_specificity": TARGET_SPEC,
         "num_val_samples": len(df_val),
-        "num_test_samples": len(df_test)
+        "num_test_samples": len(df_test),
     }])
-    summary_df.to_csv(os.path.join(RESULTS_DIR, "summary_metrics.csv"), index=False)
-    print(f"Saved: {os.path.join(RESULTS_DIR, 'summary_metrics.csv')}")
+    summary_path = os.path.join(RESULTS_DIR, f"{model_tag}_summary_metrics.csv")
+    summary_df.to_csv(summary_path, index=False)
+    print(f"Saved: {summary_path}")
 
-    # Save plots
-    plot_per_class_roc(test_true, test_probs, SELECTED_LABELS, RESULTS_DIR)
-    print(f"Saved: {os.path.join(RESULTS_DIR, 'roc_all_classes.png')}")
-    print("Saved: individual per-class ROC curve PNGs")
+    plot_per_class_roc(test_true, test_probs, SELECTED_LABELS, RESULTS_DIR, model_tag)
+    print(f"Saved: {os.path.join(RESULTS_DIR, f'{model_tag}_roc_all_classes.png')}")
+    print(f"Saved: individual per-class ROC curve PNGs with prefix '{model_tag}_'")
 
-    plot_micro_average_roc(test_true, test_probs, RESULTS_DIR)
-    print(f"Saved: {os.path.join(RESULTS_DIR, 'roc_micro_average.png')}")
+    plot_micro_average_roc(test_true, test_probs, RESULTS_DIR, model_tag)
+    print(f"Saved: {os.path.join(RESULTS_DIR, f'{model_tag}_roc_micro_average.png')}")
 
-    plot_auc_bar_chart(out, RESULTS_DIR)
-    print(f"Saved: {os.path.join(RESULTS_DIR, 'auc_bar_chart.png')}")
+    plot_auc_bar_chart(out, RESULTS_DIR, model_tag)
+    print(f"Saved: {os.path.join(RESULTS_DIR, f'{model_tag}_auc_bar_chart.png')}")
+
 
 if __name__ == "__main__":
     main()

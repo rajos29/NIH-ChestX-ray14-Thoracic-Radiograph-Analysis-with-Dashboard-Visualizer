@@ -1,2 +1,0 @@
-macro_auc,micro_auc,target_specificity,num_val_samples,num_test_samples
-0.7315657811873946,0.7527850283718899,0.9,853,848

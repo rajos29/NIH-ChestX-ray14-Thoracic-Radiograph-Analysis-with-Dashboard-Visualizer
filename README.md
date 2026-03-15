@@ -163,25 +163,44 @@ For example:
 This imbalance motivates the use of **ROC-AUC based evaluation rather than raw accuracy**.
 
 ---
-## Example Model Performance
+## Model Performance
 
-Representative evaluation metrics from the trained models.
+Evaluation results include:
 
-| Disease | ResNet18 AUC | DenseNet121 AUC |
-|-------|------|------|
-| Atelectasis | 0.78 | 0.80 |
-| Cardiomegaly | 0.85 | 0.87 |
-| Effusion | 0.83 | 0.85 |
-| Pneumothorax | 0.81 | 0.84 |
+**ResNet18 Operating Point Evaluation (90% Specificity Target):**
+| Label | Val Pos | Test Pos | Thr @ Val Spec | Val AUC | Test AUC | Test Spec | Test Sens | Test Prec | TN | FP | FN | TP |
+|------|------|------|------|------|------|------|------|------|------|------|------|------|
+| Effusion | 112 | 91 | 0.612237 | 0.797065 | 0.784981 | 0.899604 | 0.439560 | 0.344828 | 681 | 76 | 51 | 40 |
+| Pneumothorax | 42 | 48 | 0.647068 | 0.701750 | 0.767813 | 0.898750 | 0.333333 | 0.164948 | 719 | 81 | 32 | 16 |
+| Emphysema | 23 | 31 | 0.419434 | 0.791461 | 0.760058 | 0.919217 | 0.387097 | 0.153846 | 751 | 66 | 19 | 12 |
+| Cardiomegaly | 17 | 36 | 0.700168 | 0.880453 | 0.757184 | 0.894089 | 0.444444 | 0.156863 | 726 | 86 | 20 | 16 |
+| Atelectasis | 75 | 64 | 0.682694 | 0.732716 | 0.741450 | 0.910714 | 0.312500 | 0.222222 | 714 | 70 | 44 | 20 |
+| Consolidation | 37 | 31 | 0.686501 | 0.735493 | 0.737750 | 0.927785 | 0.161290 | 0.078125 | 758 | 59 | 26 | 5 |
+| Mass | 39 | 49 | 0.684444 | 0.751339 | 0.698271 | 0.869837 | 0.265306 | 0.111111 | 695 | 104 | 36 | 13 |
+| Pleural Thickening | 24 | 22 | 0.537707 | 0.736379 | 0.695851 | 0.866828 | 0.363636 | 0.067797 | 716 | 110 | 14 | 8 |
+| Infiltration | 143 | 166 | 0.699869 | 0.642086 | 0.618477 | 0.939883 | 0.150602 | 0.378788 | 641 | 41 | 141 | 25 |
+| Nodule | 55 | 42 | 0.787179 | 0.715607 | 0.569154 | 0.875931 | 0.142857 | 0.056604 | 706 | 100 | 36 | 6 |
 
-Overall performance:
+**DenseNet121 Operating Point Evaluation (90% Specificity Target):**
+| Label | Val Pos | Test Pos | Thr @ Val Spec | Val AUC | Test AUC | Test Spec | Test Sens | Test Prec | TN | FP | FN | TP |
+|------|------|------|------|------|------|------|------|------|------|------|------|------|
+| Effusion | 112 | 91 | 0.807610 | 0.802535 | 0.831420 | 0.919419 | 0.384615 | 0.364583 | 696 | 61 | 56 | 35 |
+| Consolidation | 37 | 31 | 0.757432 | 0.759936 | 0.810597 | 0.932681 | 0.322581 | 0.153846 | 762 | 55 | 21 | 10 |
+| Cardiomegaly | 17 | 36 | 0.418789 | 0.872995 | 0.793685 | 0.891626 | 0.500000 | 0.169811 | 724 | 88 | 18 | 18 |
+| Emphysema | 23 | 31 | 0.593813 | 0.867103 | 0.782959 | 0.908201 | 0.451613 | 0.157303 | 742 | 75 | 17 | 14 |
+| Pneumothorax | 42 | 48 | 0.707394 | 0.721420 | 0.781745 | 0.913750 | 0.375000 | 0.206897 | 731 | 69 | 30 | 18 |
+| Atelectasis | 75 | 64 | 0.706895 | 0.733659 | 0.752292 | 0.936224 | 0.234375 | 0.230769 | 734 | 50 | 49 | 15 |
+| Mass | 39 | 49 | 0.739537 | 0.775562 | 0.682869 | 0.902378 | 0.265306 | 0.142857 | 721 | 78 | 36 | 13 |
+| Infiltration | 143 | 166 | 0.674072 | 0.659835 | 0.643978 | 0.929619 | 0.198795 | 0.407407 | 634 | 48 | 133 | 33 |
+| Pleural Thickening | 24 | 22 | 0.738096 | 0.743215 | 0.642087 | 0.895884 | 0.363636 | 0.085106 | 740 | 86 | 14 | 8 |
+| Nodule | 55 | 42 | 0.514448 | 0.706106 | 0.594027 | 0.877171 | 0.261905 | 0.100000 | 707 | 99 | 31 | 11 |
 
-- **Micro-average AUC**
-- **Per-class ROC curves**
-- **Operating point evaluation at fixed specificity**
+- per-class ROC curves
+- micro-average ROC curves
+- AUC comparison across model architectures
+- operating point analysis
 
-All evaluation outputs are stored in the `results/` directory.
-
+All generated figures and metrics are available in the `results/` directory.
 ---
 ## Problem Formulation
 
