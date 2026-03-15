@@ -31,6 +31,12 @@ README.md         project documentation
 
 requirements.txt  Python dependencies
 
+## Quick Results
+
+DenseNet121 was superior to ResNet18, achieving a macro ROC-AUC of approximately 0.736 across 10 thoracic disease labels on the held-out test set.
+
+Operating points were selected to target approximately 90% specificity on validation data, reflecting a clinically conservative screening scenario.
+
 ---
 ## Overview
 
@@ -70,7 +76,7 @@ The goal is not to present a clinical product, but rather a **research-oriented 
 ---
 ## Data Source and Attribution
 
-This project uses metadata and image data derived from the **NIH ChestX-ray dataset**, the specific derivation this project is using is a subset of the full dataset known as "ChestX-ray8".
+This project uses metadata and image data derived from the **NIH ChestX-ray dataset**, specifically the subset commonly referred to as **ChestX-ray8**.
 
 ### Original Dataset
 
@@ -364,10 +370,24 @@ SAMPLE/
 Dataset preparation includes:
 
 - image organization
+  - resize 224x224
+  - imageNet normalization
+
 - metadata selection
+  
 - label filtering
+  
 - manifest creation
+  
 - patient-level validation
+
+Dataset splits were generated at the patient level with an approximate split ratio:
+
+- 70% training
+  
+- 15% validation
+  
+- 15% test
 
 The `manifest_v2.parquet` file functions as the central dataset index for training and dashboard use.
 
@@ -395,6 +415,12 @@ This project includes scripts to verify that:
 
 ---
 ## Model Architectures
+
+### Training Configuration
+
+Models were trained using the Adam optimizer with a binary cross-entropy loss (BCEWithLogitsLoss) for multi-label classification. Images were resized to 224×224 pixels and normalized using ImageNet statistics.
+
+Training used mini-batches of 32 images with early stopping based on validation ROC-AUC.
 
 ### ResNet18
 
@@ -462,6 +488,18 @@ Per-class test ROC-AUC performance is summarized for each architecture below.
 ![DenseNet121 AUC chart](results/densenet121_auc_bar_chart.png)
 
 ---
+### Architecture Comparison
+
+DenseNet121 demonstrated slightly stronger discrimination on several disease classes compared to ResNet18, particularly for Effusion and Consolidation.
+
+Macro ROC-AUC values for both models fall within a similar range, suggesting that both architectures learn useful representations from the dataset while remaining limited by label noise and class imbalance.
+
+**Comparing The Two Models**
+| Model | Macro ROC-AUC | Micro ROC-AUC |
+|------|------|------|
+| ResNet18 | 0.713 | 0.724 |
+| DenseNet121 | 0.736 | 0.753 |
+
 ## Prediction Export and Case Manifest
 
 Model inference outputs are exported as:
@@ -503,7 +541,7 @@ Example:
 
 ![GradCAM example](results/example_gradcam.png)
 
-*Figure is of Grad-CAM heatmap highlighting regions contributing to a prediction, Emphysema on on Patient 13 with DenseNet121.*
+*Figure is of Grad-CAM heatmap highlighting regions contributing to a prediction, Emphysema on Patient 13 with DenseNet121.*
 
 ---
 ## Dashboard Functionality
