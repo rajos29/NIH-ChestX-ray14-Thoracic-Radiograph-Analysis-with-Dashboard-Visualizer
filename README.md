@@ -31,6 +31,8 @@ README.md         project documentation
 
 requirements.txt  Python dependencies
 
+---
+
 ## Quick Results
 
 DenseNet121 was superior to ResNet18, achieving a macro ROC-AUC of approximately 0.736 across 10 thoracic disease labels on the held-out test set.
